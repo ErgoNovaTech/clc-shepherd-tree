@@ -24,6 +24,7 @@ import { useUndoRedoShortcuts } from "@/lib/hooks/useUndoRedoShortcuts";
 
 export function AppShell() {
   const hydrated = useTreeStore((s) => s.hydrated);
+  const hydrationError = useTreeStore((s) => s.hydrationError);
   const peopleCount = useTreeStore((s) => Object.keys(s.people).length);
   const hydrate = useTreeStore((s) => s.hydrate);
   const loadDemoData = useTreeStore((s) => s.loadDemoData);
@@ -50,6 +51,19 @@ export function AppShell() {
 
   if (!hydrated) {
     return <div className="flex h-screen items-center justify-center text-sm text-slate-400">Loading...</div>;
+  }
+
+  if (hydrationError) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-3 px-6 text-center">
+        <p className="text-base font-semibold text-slate-900">Couldn&apos;t load the shepherd tree</p>
+        <p className="max-w-sm text-sm text-slate-500">
+          {hydrationError}. Your data is safe in the database — this app just couldn&apos;t reach it. Check your
+          connection and try again rather than adding people now, so nothing gets overwritten.
+        </p>
+        <Button onClick={() => void hydrate()}>Retry</Button>
+      </div>
+    );
   }
 
   return (

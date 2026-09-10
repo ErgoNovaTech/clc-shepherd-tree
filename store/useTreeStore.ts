@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 import type { Person, PersonInput } from "@/types/person";
 import type { ShepherdRelationship } from "@/types/relationship";
 import type { DeleteStrategy, ReplaceStrategy } from "@/types/graph";
@@ -19,6 +20,10 @@ type DomainSnapshot = {
 
 type TreeState = DomainSnapshot & {
   hydrated: boolean;
+  /** Set when the initial load from the server fails. While set, the app must
+   *  never treat the (empty) local state as real — that would let a later
+   *  save silently overwrite real data in the database. */
+  hydrationError: string | null;
   past: DomainSnapshot[];
   future: DomainSnapshot[];
 
@@ -68,9 +73,10 @@ function toRecord(people: Person[]): Record<string, Person> {
 }
 
 function persist(people: Record<string, Person>, relationships: ShepherdRelationship[]) {
-  void treeRepository
-    .saveTree({ people: Object.values(people), relationships })
-    .catch((err) => console.error("Failed to persist tree", err));
+  void treeRepository.saveTree({ people: Object.values(people), relationships }).catch((err) => {
+    console.error("Failed to persist tree", err);
+    toast.error("Couldn't save that change to the server — check your connection and try again.");
+  });
 }
 
 export const useTreeStore = create<TreeState>((set, get) => {
@@ -99,12 +105,26 @@ export const useTreeStore = create<TreeState>((set, get) => {
     people: {},
     relationships: [],
     hydrated: false,
+    hydrationError: null,
     past: [],
     future: [],
 
     hydrate: async () => {
-      const tree = await treeRepository.getTree();
-      set({ people: toRecord(tree.people), relationships: tree.relationships, hydrated: true });
+      try {
+        const tree = await treeRepository.getTree();
+        set({
+          people: toRecord(tree.people),
+          relationships: tree.relationships,
+          hydrated: true,
+          hydrationError: null,
+        });
+      } catch (err) {
+        console.error("Failed to load tree from the server", err);
+        set({
+          hydrated: true,
+          hydrationError: err instanceof Error ? err.message : "Failed to load tree from the server",
+        });
+      }
     },
 
     addPerson: (input, shepherdId) => {
@@ -282,7 +302,12 @@ export const useTreeStore = create<TreeState>((set, get) => {
 
     resetTree: async () => {
       set({ people: {}, relationships: [], past: [], future: [] });
-      await treeRepository.clearAll();
+      try {
+        await treeRepository.clearAll();
+      } catch (err) {
+        console.error("Failed to reset tree on the server", err);
+        toast.error("Reset locally, but the server still has the old data — check your connection and try again.");
+      }
     },
 
     loadDemoData: () => {

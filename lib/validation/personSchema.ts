@@ -26,10 +26,13 @@ export const shepherdRelationshipSchema = z.object({
   createdAt: z.string(),
 });
 
-export const treeDataSchema = z.object({
-  version: z.literal(1),
+export const treeSnapshotSchema = z.object({
   people: z.array(personSchema),
   relationships: z.array(shepherdRelationshipSchema),
+});
+
+export const treeDataSchema = treeSnapshotSchema.extend({
+  version: z.literal(1),
 });
 
 export type PersonFormValues = z.infer<typeof personInputSchema>;
