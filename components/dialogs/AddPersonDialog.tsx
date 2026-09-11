@@ -21,7 +21,7 @@ export function AddPersonDialog({
   const people = useTreeStore((s) => s.people);
   const addPerson = useTreeStore((s) => s.addPerson);
   const selectPerson = useUIStore((s) => s.selectPerson);
-  const expandAncestors = useUIStore((s) => s.expandAncestors);
+  const expandIds = useUIStore((s) => s.expandIds);
   const [shepherdId, setShepherdId] = useState<string | null>(defaultShepherdId);
 
   // Reset the shepherd selection each time the dialog opens — computed during
@@ -45,7 +45,7 @@ export function AddPersonDialog({
           onCancel={() => onOpenChange(false)}
           onSubmit={(values: PersonFormValues) => {
             const id = addPerson(values, shepherdId);
-            if (shepherdId) expandAncestors([shepherdId]);
+            if (shepherdId) expandIds([shepherdId]);
             toast.success(`${values.name} has been added${shepherdId ? "" : " as a root leader"}.`);
             onOpenChange(false);
             selectPerson(id);

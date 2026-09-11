@@ -1,4 +1,4 @@
-import { Select } from "@/components/ui/Select";
+import { Combobox } from "@/components/ui/Combobox";
 import { Label } from "@/components/ui/Input";
 
 const NONE_VALUE = "__none__";
@@ -26,11 +26,12 @@ export function ShepherdPicker({
   return (
     <div>
       <Label>{label}</Label>
-      <Select
+      <Combobox
         value={value ?? NONE_VALUE}
         onValueChange={(v) => onChange(v === NONE_VALUE ? null : v)}
         options={options}
         placeholder={noneLabel}
+        searchPlaceholder="Search people..."
       />
     </div>
   );

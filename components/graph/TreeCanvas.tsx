@@ -21,7 +21,7 @@ import { useUIStore } from "@/store/useUIStore";
 import { useTraversalIndex, useDescendantCounts } from "@/lib/graph/useTraversalIndex";
 import { getVisibleGraph } from "@/lib/graph/visibility";
 import { getFocusedIds } from "@/lib/graph/focus";
-import { getAncestors } from "@/lib/graph/traversal";
+import { getAncestors, getDescendants } from "@/lib/graph/traversal";
 import { computeLayout, NODE_WIDTH, NODE_HEIGHT } from "@/lib/graph/layout";
 import { searchPeople } from "@/lib/graph/search";
 import { PersonNode, type PersonNodeData } from "@/components/graph/PersonNode";
@@ -49,7 +49,7 @@ function TreeCanvasInner(props: TreeCanvasProps) {
   const searchQuery = useUIStore((s) => s.searchQuery);
   const toggleCollapsed = useUIStore((s) => s.toggleCollapsed);
   const selectPerson = useUIStore((s) => s.selectPerson);
-  const expandAncestors = useUIStore((s) => s.expandAncestors);
+  const expandIds = useUIStore((s) => s.expandIds);
   const setFocusMode = useUIStore((s) => s.setFocusMode);
 
   const index = useTraversalIndex();
@@ -108,6 +108,17 @@ function TreeCanvasInner(props: TreeCanvasProps) {
   const handleOpenMenu = useCallback(
     (id: string, x: number, y: number) => setContextMenu({ personId: id, x, y }),
     []
+  );
+
+  // Clicking a node selects it and reveals its whole branch at once — the
+  // tree defaults to root + direct reports only, so this is how you drill in.
+  const handleNodeClick = useCallback(
+    (id: string) => {
+      selectPerson(id);
+      const descendants = getDescendants(id, index.childrenByShepherd);
+      if (descendants.length > 0) expandIds([id, ...descendants]);
+    },
+    [selectPerson, expandIds, index]
   );
 
   useEffect(() => {
@@ -187,7 +198,7 @@ function TreeCanvasInner(props: TreeCanvasProps) {
   const lastCenteredId = useRef<string | null>(null);
   useEffect(() => {
     if (!selectedPersonId || lastCenteredId.current === selectedPersonId) return;
-    expandAncestors(getAncestors(selectedPersonId, index.shepherdByMember));
+    expandIds(getAncestors(selectedPersonId, index.shepherdByMember));
     const id = requestAnimationFrame(() => {
       const positions = computeLayout(finalVisibleIds, finalEdges, layoutRootIds);
       const pos = positions[selectedPersonId];
@@ -238,7 +249,7 @@ function TreeCanvasInner(props: TreeCanvasProps) {
           e.preventDefault();
           setContextMenu({ personId: node.id, x: e.clientX, y: e.clientY });
         }}
-        onNodeClick={(_, node) => selectPerson(node.id)}
+        onNodeClick={(_, node) => handleNodeClick(node.id)}
         onPaneClick={() => setContextMenu(null)}
         fitView={false}
         minZoom={0.05}

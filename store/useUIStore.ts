@@ -12,7 +12,9 @@ type UIState = {
   activeView: ActiveView;
 
   toggleCollapsed: (id: string) => void;
-  expandAncestors: (ancestorIds: string[]) => void;
+  /** Removes the given ids from collapsedIds — used both to reveal a
+   *  selected person's ancestors and to expand a whole clicked branch. */
+  expandIds: (ids: string[]) => void;
   collapseAll: (ids: string[]) => void;
   expandAll: () => void;
 
@@ -40,12 +42,12 @@ export const useUIStore = create<UIState>((set) => ({
       return { collapsedIds: next };
     }),
 
-  expandAncestors: (ancestorIds) =>
+  expandIds: (ids) =>
     set((state) => {
-      if (ancestorIds.length === 0) return state;
+      if (ids.length === 0) return state;
       const next = new Set(state.collapsedIds);
       let changed = false;
-      for (const id of ancestorIds) {
+      for (const id of ids) {
         if (next.delete(id)) changed = true;
       }
       return changed ? { collapsedIds: next } : state;

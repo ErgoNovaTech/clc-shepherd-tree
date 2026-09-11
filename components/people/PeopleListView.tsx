@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { PersonAvatar } from "@/components/people/PersonAvatar";
 import { Select } from "@/components/ui/Select";
+import { Combobox } from "@/components/ui/Combobox";
 import { useTreeStore } from "@/store/useTreeStore";
 import { useUIStore } from "@/store/useUIStore";
 import { useTraversalIndex } from "@/lib/graph/useTraversalIndex";
@@ -39,17 +40,19 @@ export function PeopleListView() {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <div className="w-40">
-          <Select
+          <Combobox
             value={role}
             onValueChange={setRole}
             options={[{ value: ALL, label: "All roles" }, ...roles.map((r) => ({ value: r, label: r }))]}
+            searchPlaceholder="Search roles..."
           />
         </div>
         <div className="w-40">
-          <Select
+          <Combobox
             value={location}
             onValueChange={setLocation}
             options={[{ value: ALL, label: "All locations" }, ...locations.map((l) => ({ value: l, label: l }))]}
+            searchPlaceholder="Search locations..."
           />
         </div>
         <div className="w-40">

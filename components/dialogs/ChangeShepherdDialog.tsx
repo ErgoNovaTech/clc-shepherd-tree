@@ -21,7 +21,7 @@ export function ChangeShepherdDialog({
 }) {
   const people = useTreeStore((s) => s.people);
   const changeShepherd = useTreeStore((s) => s.changeShepherd);
-  const expandAncestors = useUIStore((s) => s.expandAncestors);
+  const expandIds = useUIStore((s) => s.expandIds);
   const index = useTraversalIndex();
   const [shepherdId, setShepherdId] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ export function ChangeShepherdDialog({
       }
       return;
     }
-    if (shepherdId) expandAncestors([shepherdId]);
+    if (shepherdId) expandIds([shepherdId]);
     const shepherdName = shepherdId ? people[shepherdId]?.name : "no one (root)";
     toast.success(`${person!.name} is now shepherded by ${shepherdName}.`);
     onOpenChange(false);

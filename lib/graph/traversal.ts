@@ -65,6 +65,21 @@ export function getDepth(personId: string, shepherdByMember: Map<string, string>
 }
 
 /**
+ * Ids to collapse for the default "one step" view: every non-root person who
+ * has their own reports. Roots (and their direct reports, since those are
+ * exactly what's left visible once these are collapsed) stay visible.
+ */
+export function getDefaultCollapsedIds(peopleIds: Iterable<string>, index: TraversalIndex): string[] {
+  const ids: string[] = [];
+  for (const id of peopleIds) {
+    if (index.childrenByShepherd.has(id) && index.shepherdByMember.has(id)) {
+      ids.push(id);
+    }
+  }
+  return ids;
+}
+
+/**
  * Total-downline count for every person in one O(n) pass (children-before-parent
  * accumulation over a DFS discovery order), instead of an O(n) walk per node —
  * matters once chains get hundreds of levels deep.

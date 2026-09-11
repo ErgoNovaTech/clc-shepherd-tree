@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Toolbar } from "@/components/layout/Toolbar";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -21,20 +21,37 @@ import { Button } from "@/components/ui/Button";
 import { useTreeStore } from "@/store/useTreeStore";
 import { useUIStore } from "@/store/useUIStore";
 import { useUndoRedoShortcuts } from "@/lib/hooks/useUndoRedoShortcuts";
+import { useTraversalIndex } from "@/lib/graph/useTraversalIndex";
+import { getDefaultCollapsedIds } from "@/lib/graph/traversal";
 
 export function AppShell() {
   const hydrated = useTreeStore((s) => s.hydrated);
   const hydrationError = useTreeStore((s) => s.hydrationError);
-  const peopleCount = useTreeStore((s) => Object.keys(s.people).length);
+  const people = useTreeStore((s) => s.people);
+  const peopleCount = Object.keys(people).length;
   const hydrate = useTreeStore((s) => s.hydrate);
   const loadDemoData = useTreeStore((s) => s.loadDemoData);
   const activeView = useUIStore((s) => s.activeView);
+  const collapseAll = useUIStore((s) => s.collapseAll);
+  const index = useTraversalIndex();
 
   useUndoRedoShortcuts();
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
+
+  // Default the tree to "one step" — root(s) plus their direct reports —
+  // the first time data becomes available in a session, so it doesn't reopen
+  // a wall of hundreds of nodes. Applied once; later edits/imports don't
+  // re-collapse a view the admin has already expanded.
+  const appliedDefaultCollapse = useRef(false);
+  useEffect(() => {
+    if (appliedDefaultCollapse.current || !hydrated || hydrationError || peopleCount === 0) return;
+    appliedDefaultCollapse.current = true;
+    const defaultCollapsed = getDefaultCollapsedIds(Object.keys(people), index);
+    if (defaultCollapsed.length > 0) collapseAll(defaultCollapsed);
+  }, [hydrated, hydrationError, peopleCount, people, index, collapseAll]);
 
   const [addPersonOpen, setAddPersonOpen] = useState(false);
   const [addPersonDefaultShepherd, setAddPersonDefaultShepherd] = useState<string | null>(null);
