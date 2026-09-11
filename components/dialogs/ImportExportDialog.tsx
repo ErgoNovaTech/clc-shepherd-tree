@@ -9,6 +9,7 @@ import { useTreeStore } from "@/store/useTreeStore";
 import { downloadJson, readFileAsText } from "@/lib/utils/download";
 import { treeDataSchema } from "@/lib/validation/personSchema";
 import { parseCsvImport, type CsvImportIssue } from "@/lib/validation/csvImport";
+import { exportTreeAsExcel } from "@/lib/graph/excelExport";
 
 export function ImportExportDialog({
   open,
@@ -35,6 +36,15 @@ export function ImportExportDialog({
       relationships,
     });
     toast.success("Tree exported.");
+  }
+
+  function handleExportExcel() {
+    if (Object.keys(people).length === 0) {
+      toast.error("There's no one in the tree yet.");
+      return;
+    }
+    exportTreeAsExcel(Object.values(people), relationships);
+    toast.success("Tree exported as Excel.");
   }
 
   async function handleJsonFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
@@ -83,10 +93,18 @@ export function ImportExportDialog({
           <div className="space-y-6">
             <section>
               <h3 className="text-sm font-semibold text-slate-900">Export</h3>
-              <p className="mb-2 text-sm text-slate-500">Download the entire tree as a JSON backup file.</p>
-              <Button variant="outline" onClick={handleExport}>
-                Export Tree (JSON)
-              </Button>
+              <p className="mb-2 text-sm text-slate-500">
+                Download the entire tree as a JSON backup file, or as an Excel sheet for browsing/sharing with
+                leadership.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={handleExport}>
+                  Export Tree (JSON)
+                </Button>
+                <Button variant="outline" onClick={handleExportExcel}>
+                  Export Tree (Excel)
+                </Button>
+              </div>
             </section>
 
             <section>
