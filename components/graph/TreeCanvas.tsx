@@ -69,16 +69,31 @@ function TreeCanvasInner(props: TreeCanvasProps) {
   );
 
   const { finalVisibleIds, finalEdges, layoutRootIds } = useMemo(() => {
-    const ids = focusedIds
-      ? visibleGraph.visibleIds.filter((id) => focusedIds.has(id))
-      : visibleGraph.visibleIds;
-    const edges = focusedIds
-      ? visibleGraph.edges.filter((e) => focusedIds.has(e.source) && focusedIds.has(e.target))
-      : visibleGraph.edges;
+    let ids: string[];
+    let edges: { source: string; target: string }[];
+
+    if (focusedIds) {
+      // Focus mode (View Upline/Downline/Full Branch) shows everyone it asks
+      // for in full, regardless of collapse state — building it straight from
+      // focusedIds instead of intersecting with visibleGraph avoids losing
+      // descendants that sit behind a branch the admin still has collapsed.
+      ids = Array.from(focusedIds);
+      edges = [];
+      for (const id of ids) {
+        const shepherdId = index.shepherdByMember.get(id);
+        if (shepherdId && focusedIds.has(shepherdId)) {
+          edges.push({ source: shepherdId, target: id });
+        }
+      }
+    } else {
+      ids = visibleGraph.visibleIds;
+      edges = visibleGraph.edges;
+    }
+
     const targets = new Set(edges.map((e) => e.target));
     const roots = ids.filter((id) => !targets.has(id));
     return { finalVisibleIds: ids, finalEdges: edges, layoutRootIds: roots };
-  }, [visibleGraph, focusedIds]);
+  }, [visibleGraph, focusedIds, index]);
 
   const highlightedIds = useMemo(() => {
     if (!searchQuery.trim()) return new Set<string>();
@@ -194,11 +209,21 @@ function TreeCanvasInner(props: TreeCanvasProps) {
     return () => cancelAnimationFrame(id);
   }, [finalVisibleIds, finalEdges, layoutRootIds, setCenter]);
 
-  // Center on a newly selected person (e.g. from search), expanding collapsed ancestors first.
+  // Expand ancestors of a newly selected person (e.g. from search) so a
+  // collapsed ancestor doesn't keep them hidden.
+  useEffect(() => {
+    if (!selectedPersonId) return;
+    expandIds(getAncestors(selectedPersonId, index.shepherdByMember));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPersonId]);
+
+  // Center on the selected person once they actually show up in the visible
+  // set — that may take one extra render after the expand above lands, since
+  // finalVisibleIds here is still the pre-expand snapshot until it re-renders.
   const lastCenteredId = useRef<string | null>(null);
   useEffect(() => {
     if (!selectedPersonId || lastCenteredId.current === selectedPersonId) return;
-    expandIds(getAncestors(selectedPersonId, index.shepherdByMember));
+    if (!finalVisibleIds.includes(selectedPersonId)) return;
     const id = requestAnimationFrame(() => {
       const positions = computeLayout(finalVisibleIds, finalEdges, layoutRootIds);
       const pos = positions[selectedPersonId];
@@ -208,8 +233,7 @@ function TreeCanvasInner(props: TreeCanvasProps) {
       }
     });
     return () => cancelAnimationFrame(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPersonId]);
+  }, [selectedPersonId, finalVisibleIds, finalEdges, layoutRootIds, setCenter]);
 
   const handleConnect = useCallback(
     (connection: Connection) => {
