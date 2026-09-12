@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import type { Person } from "@/types/person";
 import type { ShepherdRelationship } from "@/types/relationship";
-import { buildTraversalIndex, computeDescendantCounts, getDepth } from "./traversal";
+import { buildTraversalIndex, computeDescendantCounts, getDepth, getShadowShepherdId } from "./traversal";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Active",
@@ -9,7 +9,7 @@ const STATUS_LABEL: Record<string, string> = {
   transferred: "Transferred",
 };
 
-const COLUMN_WIDTHS = [22, 16, 12, 16, 24, 16, 22, 8, 14, 14, 30];
+const COLUMN_WIDTHS = [22, 16, 12, 16, 24, 16, 22, 22, 8, 14, 14, 30];
 
 /**
  * Denormalizes the tree into one flat, human-readable sheet — one row per
@@ -30,6 +30,8 @@ export function exportTreeAsExcel(
     .map((person) => {
       const shepherdId = index.shepherdByMember.get(person.id);
       const shepherd = shepherdId ? peopleById.get(shepherdId) : undefined;
+      const shadowShepherdId = getShadowShepherdId(person.id, index.shepherdByMember);
+      const shadowShepherd = shadowShepherdId ? peopleById.get(shadowShepherdId) : undefined;
       return {
         Name: person.name,
         Role: person.role ?? "",
@@ -38,6 +40,7 @@ export function exportTreeAsExcel(
         Email: person.email ?? "",
         Location: person.location ?? "",
         Shepherd: shepherd?.name ?? "",
+        "Shadow Shepherd": shadowShepherd?.name ?? "",
         Level: getDepth(person.id, index.shepherdByMember),
         "Direct Reports": index.childrenByShepherd.get(person.id)?.length ?? 0,
         "Total Downline": descendantCounts.get(person.id) ?? 0,

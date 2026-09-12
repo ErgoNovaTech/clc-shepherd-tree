@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { useTreeStore } from "@/store/useTreeStore";
 import { useUIStore } from "@/store/useUIStore";
 import { useTraversalIndex, useDescendantCounts } from "@/lib/graph/useTraversalIndex";
-import { getDepth } from "@/lib/graph/traversal";
+import { getDepth, getShadowShepherdId } from "@/lib/graph/traversal";
 import type { FocusMode } from "@/types/graph";
 
 const STATUS_LABEL: Record<string, string> = { active: "Active", inactive: "Inactive", transferred: "Transferred" };
@@ -40,6 +40,8 @@ export function PersonDetailsPanel({
 
   const shepherdId = index.shepherdByMember.get(person.id) ?? null;
   const shepherd = shepherdId ? people[shepherdId] : null;
+  const shadowShepherdId = getShadowShepherdId(person.id, index.shepherdByMember);
+  const shadowShepherd = shadowShepherdId ? people[shadowShepherdId] : null;
   const children = index.childrenByShepherd.get(person.id) ?? [];
   const level = getDepth(person.id, index.shepherdByMember);
   const totalDownline = descendantCounts.get(person.id) ?? 0;
@@ -120,6 +122,18 @@ export function PersonDetailsPanel({
           <p className="text-sm text-slate-400">No shepherd (root leader)</p>
         )}
       </div>
+
+      {shadowShepherd && (
+        <div className="mt-4">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Shadow Shepherd</p>
+          <button
+            className="text-sm text-slate-700 hover:text-slate-900 hover:underline"
+            onClick={() => selectPerson(shadowShepherd.id)}
+          >
+            {shadowShepherd.name}
+          </button>
+        </div>
+      )}
 
       <div className="mt-4">
         <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
