@@ -15,6 +15,7 @@ export const personInputSchema = z.object({
 
 export const personSchema = personInputSchema.extend({
   id: z.string().min(1),
+  shadowShepherdId: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

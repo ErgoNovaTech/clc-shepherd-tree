@@ -1,13 +1,13 @@
 "use client";
 
-import { X, Mail, Phone, MapPin, Pencil, ArrowRightLeft, UserPlus, Repeat, Trash2 } from "lucide-react";
+import { X, Mail, Phone, MapPin, Pencil, ArrowRightLeft, UserCheck, UserPlus, Repeat, Trash2 } from "lucide-react";
 import { PersonAvatar } from "@/components/people/PersonAvatar";
 import { BreadcrumbTrail } from "@/components/people/BreadcrumbTrail";
 import { Button } from "@/components/ui/Button";
 import { useTreeStore } from "@/store/useTreeStore";
 import { useUIStore } from "@/store/useUIStore";
 import { useTraversalIndex, useDescendantCounts } from "@/lib/graph/useTraversalIndex";
-import { getDepth, getShadowShepherdId } from "@/lib/graph/traversal";
+import { getDepth } from "@/lib/graph/traversal";
 import type { FocusMode } from "@/types/graph";
 
 const STATUS_LABEL: Record<string, string> = { active: "Active", inactive: "Inactive", transferred: "Transferred" };
@@ -15,12 +15,14 @@ const STATUS_LABEL: Record<string, string> = { active: "Active", inactive: "Inac
 export function PersonDetailsPanel({
   onEdit,
   onChangeShepherd,
+  onSetShadowShepherd,
   onAddUnder,
   onReplace,
   onDelete,
 }: {
   onEdit: (id: string) => void;
   onChangeShepherd: (id: string) => void;
+  onSetShadowShepherd: (id: string) => void;
   onAddUnder: (id: string) => void;
   onReplace: (id: string) => void;
   onDelete: (id: string) => void;
@@ -40,8 +42,7 @@ export function PersonDetailsPanel({
 
   const shepherdId = index.shepherdByMember.get(person.id) ?? null;
   const shepherd = shepherdId ? people[shepherdId] : null;
-  const shadowShepherdId = getShadowShepherdId(person.id, index.shepherdByMember);
-  const shadowShepherd = shadowShepherdId ? people[shadowShepherdId] : null;
+  const shadowShepherd = person.shadowShepherdId ? people[person.shadowShepherdId] : null;
   const children = index.childrenByShepherd.get(person.id) ?? [];
   const level = getDepth(person.id, index.shepherdByMember);
   const totalDownline = descendantCounts.get(person.id) ?? 0;
@@ -123,17 +124,19 @@ export function PersonDetailsPanel({
         )}
       </div>
 
-      {shadowShepherd && (
-        <div className="mt-4">
-          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Shadow Shepherd</p>
+      <div className="mt-4">
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Shadow Shepherd</p>
+        {shadowShepherd ? (
           <button
             className="text-sm text-slate-700 hover:text-slate-900 hover:underline"
             onClick={() => selectPerson(shadowShepherd.id)}
           >
             {shadowShepherd.name}
           </button>
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-slate-400">Not set</p>
+        )}
+      </div>
 
       <div className="mt-4">
         <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">
@@ -181,6 +184,9 @@ export function PersonDetailsPanel({
         </Button>
         <Button size="sm" variant="secondary" onClick={() => onReplace(person.id)}>
           <Repeat className="h-3.5 w-3.5" /> Replace
+        </Button>
+        <Button size="sm" variant="secondary" className="col-span-2" onClick={() => onSetShadowShepherd(person.id)}>
+          <UserCheck className="h-3.5 w-3.5" /> Set Shadow Shepherd
         </Button>
         <Button size="sm" variant="destructive" className="col-span-2" onClick={() => onDelete(person.id)}>
           <Trash2 className="h-3.5 w-3.5" /> Delete Person

@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/Toaster";
 import { AddPersonDialog } from "@/components/dialogs/AddPersonDialog";
 import { EditPersonDialog } from "@/components/dialogs/EditPersonDialog";
 import { ChangeShepherdDialog } from "@/components/dialogs/ChangeShepherdDialog";
+import { SetShadowShepherdDialog } from "@/components/dialogs/SetShadowShepherdDialog";
 import { ReplacePersonDialog } from "@/components/dialogs/ReplacePersonDialog";
 import { DeletePersonDialog } from "@/components/dialogs/DeletePersonDialog";
 import { ImportExportDialog } from "@/components/dialogs/ImportExportDialog";
@@ -57,6 +58,7 @@ export function AppShell() {
   const [addPersonDefaultShepherd, setAddPersonDefaultShepherd] = useState<string | null>(null);
   const [editPersonId, setEditPersonId] = useState<string | null>(null);
   const [changeShepherdPersonId, setChangeShepherdPersonId] = useState<string | null>(null);
+  const [shadowShepherdPersonId, setShadowShepherdPersonId] = useState<string | null>(null);
   const [replacePersonId, setReplacePersonId] = useState<string | null>(null);
   const [deletePersonId, setDeletePersonId] = useState<string | null>(null);
   const [importExportOpen, setImportExportOpen] = useState(false);
@@ -106,6 +108,7 @@ export function AppShell() {
               <TreeCanvas
                 onEdit={setEditPersonId}
                 onChangeShepherd={setChangeShepherdPersonId}
+                onSetShadowShepherd={setShadowShepherdPersonId}
                 onAddUnder={openAddPerson}
                 onReplace={setReplacePersonId}
                 onDelete={setDeletePersonId}
@@ -142,6 +145,7 @@ export function AppShell() {
           <PersonDetailsPanel
             onEdit={setEditPersonId}
             onChangeShepherd={setChangeShepherdPersonId}
+            onSetShadowShepherd={setShadowShepherdPersonId}
             onAddUnder={openAddPerson}
             onReplace={setReplacePersonId}
             onDelete={setDeletePersonId}
@@ -155,6 +159,11 @@ export function AppShell() {
         open={changeShepherdPersonId !== null}
         onOpenChange={(o) => !o && setChangeShepherdPersonId(null)}
         personId={changeShepherdPersonId}
+      />
+      <SetShadowShepherdDialog
+        open={shadowShepherdPersonId !== null}
+        onOpenChange={(o) => !o && setShadowShepherdPersonId(null)}
+        personId={shadowShepherdPersonId}
       />
       <ReplacePersonDialog
         open={replacePersonId !== null}

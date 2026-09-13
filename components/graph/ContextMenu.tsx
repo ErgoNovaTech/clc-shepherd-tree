@@ -5,6 +5,7 @@ import {
   Eye,
   Pencil,
   ArrowRightLeft,
+  UserCheck,
   UserPlus,
   Repeat,
   ChevronsUpDown,
@@ -32,6 +33,7 @@ export function ContextMenu({
     onViewDetails: (id: string) => void;
     onEdit: (id: string) => void;
     onChangeShepherd: (id: string) => void;
+    onSetShadowShepherd: (id: string) => void;
     onAddUnder: (id: string) => void;
     onReplace: (id: string) => void;
     onToggleCollapse: (id: string) => void;
@@ -67,6 +69,11 @@ export function ContextMenu({
       label: "Change Shepherd",
       icon: <ArrowRightLeft className="h-4 w-4" />,
       onClick: () => actions.onChangeShepherd(personId),
+    },
+    {
+      label: "Set Shadow Shepherd",
+      icon: <UserCheck className="h-4 w-4" />,
+      onClick: () => actions.onSetShadowShepherd(personId),
     },
     { label: "Add Person Under", icon: <UserPlus className="h-4 w-4" />, onClick: () => actions.onAddUnder(personId) },
     { label: "Replace Person", icon: <Repeat className="h-4 w-4" />, onClick: () => actions.onReplace(personId) },

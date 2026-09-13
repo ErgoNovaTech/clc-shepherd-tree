@@ -65,18 +65,6 @@ export function getDepth(personId: string, shepherdByMember: Map<string, string>
 }
 
 /**
- * A person's "shadow shepherd" — their direct shepherd's own shepherd, who
- * therefore also effectively oversees them one level up. Purely derived from
- * the existing hierarchy (no separate relationship); null for a root, or for
- * someone whose direct shepherd is themselves a root.
- */
-export function getShadowShepherdId(personId: string, shepherdByMember: Map<string, string>): string | null {
-  const directShepherdId = shepherdByMember.get(personId);
-  if (!directShepherdId) return null;
-  return shepherdByMember.get(directShepherdId) ?? null;
-}
-
-/**
  * Ids to collapse for the default "one step" view: every non-root person who
  * has their own reports. Roots (and their direct reports, since those are
  * exactly what's left visible once these are collapsed) stay visible.

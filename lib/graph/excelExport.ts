@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import type { Person } from "@/types/person";
 import type { ShepherdRelationship } from "@/types/relationship";
-import { buildTraversalIndex, computeDescendantCounts, getDepth, getShadowShepherdId } from "./traversal";
+import { buildTraversalIndex, computeDescendantCounts, getDepth } from "./traversal";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Active",
@@ -30,8 +30,7 @@ export function exportTreeAsExcel(
     .map((person) => {
       const shepherdId = index.shepherdByMember.get(person.id);
       const shepherd = shepherdId ? peopleById.get(shepherdId) : undefined;
-      const shadowShepherdId = getShadowShepherdId(person.id, index.shepherdByMember);
-      const shadowShepherd = shadowShepherdId ? peopleById.get(shadowShepherdId) : undefined;
+      const shadowShepherd = person.shadowShepherdId ? peopleById.get(person.shadowShepherdId) : undefined;
       return {
         Name: person.name,
         Role: person.role ?? "",

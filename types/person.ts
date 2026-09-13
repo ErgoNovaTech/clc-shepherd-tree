@@ -10,6 +10,9 @@ export type Person = {
   location?: string;
   status?: PersonStatus;
   notes?: string;
+  /** An additional overseer, explicitly assigned — independent of the regular
+   *  shepherd hierarchy (set via "Set Shadow Shepherd", not the person form). */
+  shadowShepherdId?: string;
   createdAt: string;
   updatedAt: string;
 };

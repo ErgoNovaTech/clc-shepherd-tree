@@ -34,6 +34,7 @@ const nodeTypes = { person: PersonNode };
 type TreeCanvasProps = {
   onEdit: (id: string) => void;
   onChangeShepherd: (id: string) => void;
+  onSetShadowShepherd: (id: string) => void;
   onAddUnder: (id: string) => void;
   onReplace: (id: string) => void;
   onDelete: (id: string) => void;
@@ -314,6 +315,7 @@ function TreeCanvasInner(props: TreeCanvasProps) {
             onViewDetails: selectPerson,
             onEdit: props.onEdit,
             onChangeShepherd: props.onChangeShepherd,
+            onSetShadowShepherd: props.onSetShadowShepherd,
             onAddUnder: props.onAddUnder,
             onReplace: props.onReplace,
             onToggleCollapse: handleToggleCollapse,

@@ -30,7 +30,9 @@ type TreeState = DomainSnapshot & {
   hydrate: () => Promise<void>;
 
   addPerson: (input: PersonInput, shepherdId: string | null) => string;
-  updatePerson: (id: string, patch: Partial<PersonInput>) => void;
+  /** Broader than PersonInput on purpose — also covers fields set outside the
+   *  person form, like shadowShepherdId (set via its own dialog/action). */
+  updatePerson: (id: string, patch: Partial<Omit<Person, "id" | "createdAt">>) => void;
 
   /** Low-level connect, used by drag-connect on the canvas. Rejects a second
    *  shepherd unless replaceExisting is passed. */
