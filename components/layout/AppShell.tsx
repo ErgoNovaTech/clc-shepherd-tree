@@ -14,7 +14,6 @@ import { Toaster } from "@/components/ui/Toaster";
 import { AddPersonDialog } from "@/components/dialogs/AddPersonDialog";
 import { EditPersonDialog } from "@/components/dialogs/EditPersonDialog";
 import { ChangeShepherdDialog } from "@/components/dialogs/ChangeShepherdDialog";
-import { SetShadowShepherdDialog } from "@/components/dialogs/SetShadowShepherdDialog";
 import { ReplacePersonDialog } from "@/components/dialogs/ReplacePersonDialog";
 import { DeletePersonDialog } from "@/components/dialogs/DeletePersonDialog";
 import { ImportExportDialog } from "@/components/dialogs/ImportExportDialog";
@@ -32,6 +31,7 @@ export function AppShell() {
   const peopleCount = Object.keys(people).length;
   const hydrate = useTreeStore((s) => s.hydrate);
   const loadDemoData = useTreeStore((s) => s.loadDemoData);
+  const updatePerson = useTreeStore((s) => s.updatePerson);
   const activeView = useUIStore((s) => s.activeView);
   const collapseAll = useUIStore((s) => s.collapseAll);
   const index = useTraversalIndex();
@@ -58,7 +58,6 @@ export function AppShell() {
   const [addPersonDefaultShepherd, setAddPersonDefaultShepherd] = useState<string | null>(null);
   const [editPersonId, setEditPersonId] = useState<string | null>(null);
   const [changeShepherdPersonId, setChangeShepherdPersonId] = useState<string | null>(null);
-  const [shadowShepherdPersonId, setShadowShepherdPersonId] = useState<string | null>(null);
   const [replacePersonId, setReplacePersonId] = useState<string | null>(null);
   const [deletePersonId, setDeletePersonId] = useState<string | null>(null);
   const [importExportOpen, setImportExportOpen] = useState(false);
@@ -66,6 +65,24 @@ export function AppShell() {
   function openAddPerson(defaultShepherdId: string | null = null) {
     setAddPersonDefaultShepherd(defaultShepherdId);
     setAddPersonOpen(true);
+  }
+
+  // No picker — the shadow shepherd is always just "this person's shepherd's
+  // own shepherd," applied immediately and stored on the person.
+  function setShadowShepherd(personId: string) {
+    const person = people[personId];
+    const shepherdId = index.shepherdByMember.get(personId);
+    if (!shepherdId) {
+      toast.error(`${person?.name ?? "This person"} has no shepherd, so there's no shadow shepherd to set.`);
+      return;
+    }
+    const shadowShepherdId = index.shepherdByMember.get(shepherdId);
+    if (!shadowShepherdId) {
+      toast.error(`${people[shepherdId]?.name}'s own shepherd isn't set, so there's no shadow shepherd to assign.`);
+      return;
+    }
+    updatePerson(personId, { shadowShepherdId });
+    toast.success(`${person?.name}'s shadow shepherd is now ${people[shadowShepherdId]?.name}.`);
   }
 
   if (!hydrated) {
@@ -108,7 +125,7 @@ export function AppShell() {
               <TreeCanvas
                 onEdit={setEditPersonId}
                 onChangeShepherd={setChangeShepherdPersonId}
-                onSetShadowShepherd={setShadowShepherdPersonId}
+                onSetShadowShepherd={setShadowShepherd}
                 onAddUnder={openAddPerson}
                 onReplace={setReplacePersonId}
                 onDelete={setDeletePersonId}
@@ -145,7 +162,7 @@ export function AppShell() {
           <PersonDetailsPanel
             onEdit={setEditPersonId}
             onChangeShepherd={setChangeShepherdPersonId}
-            onSetShadowShepherd={setShadowShepherdPersonId}
+            onSetShadowShepherd={setShadowShepherd}
             onAddUnder={openAddPerson}
             onReplace={setReplacePersonId}
             onDelete={setDeletePersonId}
@@ -159,11 +176,6 @@ export function AppShell() {
         open={changeShepherdPersonId !== null}
         onOpenChange={(o) => !o && setChangeShepherdPersonId(null)}
         personId={changeShepherdPersonId}
-      />
-      <SetShadowShepherdDialog
-        open={shadowShepherdPersonId !== null}
-        onOpenChange={(o) => !o && setShadowShepherdPersonId(null)}
-        personId={shadowShepherdPersonId}
       />
       <ReplacePersonDialog
         open={replacePersonId !== null}
